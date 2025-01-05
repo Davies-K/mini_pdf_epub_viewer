@@ -2,6 +2,11 @@
 
 **Mini PDF & EPUB Viewer** is a Flutter widget designed to provide a seamless document viewing experience with support for PDF files and (upcoming) EPUB format. It offers an intuitive interface with thumbnail navigation, smooth page transitions, and customizable viewing options, making it perfect for document reader applications, e-book apps, or any Flutter project requiring document viewing capabilities.
 
+## Examples
+| ![Mini Viewer](doc/src/assets/example/example.gif) |
+|:--------------------------------------------------------------------:|
+| Mini PDF Viewer Example                                            |
+
 ## Features
 
 - **Multiple Document Sources**: Load documents from various sources:
