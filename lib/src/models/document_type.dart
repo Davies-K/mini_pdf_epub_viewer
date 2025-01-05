@@ -1,0 +1,1 @@
+enum DocumentType { pdf, epub }
