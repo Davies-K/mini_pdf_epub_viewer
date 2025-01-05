@@ -1,3 +1,5 @@
-## 0.0.1
+## 0.1.0
 
-* TODO: Describe initial release.
+Initial Version of library
+
+- Initial release of mini_pdf_epub_reader library.

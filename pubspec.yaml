@@ -1,6 +1,10 @@
 name: mini_pdf_epub_viewer
 description: "A Flutter package for viewing PDF and EPUB documents from various sources (assets, files, network)."
-version: 0.0.1
+version: 0.1.0
+repository: https://github.com/Davies-K/mini_pdf_epub_viewer
+homepage: https://github.com/davies-k
+topics: ["pdf", "mini", "epub", "reader",]
+funding: [https://buymeacoffee.com/davieskwarteng]
 
 environment:
   sdk: ^3.5.3
