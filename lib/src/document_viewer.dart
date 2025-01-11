@@ -19,7 +19,6 @@ class DocumentViewer extends StatefulWidget {
   const DocumentViewer({
     super.key,
     required this.source,
-    
     required this.type,
     this.thumbnailWidth = 200,
     this.showThumbnails = true,
@@ -42,9 +41,8 @@ class _DocumentViewerState extends State<DocumentViewer> {
   // TODO(davies-k): Implement editing functionality
   // double _rotation = 0.0;
   // bool _isEditing = false;
-  // final _transformationController = TransformationController();
-  // double _scale = 1.0;
-
+  final _transformationController = TransformationController();
+  double _scale = 1.0;
 
   @override
   void initState() {
@@ -148,159 +146,133 @@ class _DocumentViewerState extends State<DocumentViewer> {
     }
   }
 
-  // Widget _buildHeader() {
-  //   final fileName = widget.source.path.split('/').last;
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     decoration: BoxDecoration(
-  //       color: Colors.grey[200],
-  //       border: Border(
-  //         bottom: BorderSide(
-  //           color: Colors.grey[300]!,
-  //           width: 1,
-  //         ),
-  //       ),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         // File name and page counter
-  //         Expanded(
-  //           child: Row(
-  //             children: [
-  //               Text(
-  //                 fileName,
-  //                 style: const TextStyle(
-  //                   fontWeight: FontWeight.w500,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //               const SizedBox(width: 8),
-  //               Text(
-  //                 'Page $_currentPage of $_totalPages',
-  //                 style: TextStyle(
-  //                   color: Colors.grey[600],
-  //                   fontSize: 14,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //         // Header actions
-  //         Row(
-  //           children: [
-  //             // Info button
-  //             IconButton(
-  //               icon: const Icon(Icons.info_outline),
-  //               onPressed: () {
-  //                 showDialog(
-  //                   context: context,
-  //                   builder: (context) => AlertDialog(
-  //                     title: const Text('Document Information'),
-  //                     content: Column(
-  //                       mainAxisSize: MainAxisSize.min,
-  //                       crossAxisAlignment: CrossAxisAlignment.start,
-  //                       children: [
-  //                         Text('Filename: $fileName'),
-  //                         Text('Total Pages: $_totalPages'),
-  //                       ],
-  //                     ),
-  //                     actions: [
-  //                       TextButton(
-  //                         onPressed: () => Navigator.pop(context),
-  //                         child: const Text('Close'),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 );
-  //               },
-  //             ),
-  //             // Zoom out button
-  //             IconButton(
-  //               icon: const Icon(Icons.zoom_out),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _scale = (_scale - 0.25).clamp(0.5, 3.0);
-  //                   final matrix = Matrix4.identity()
-  //                     ..scale(_scale, _scale);
-  //                   _transformationController.value = matrix;
-  //                 });
-  //               },
-  //             ),
-  //             // Zoom in button
-  //             IconButton(
-  //               icon: const Icon(Icons.zoom_in),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _scale = (_scale + 0.25).clamp(0.5, 3.0);
-  //                   final matrix = Matrix4.identity()
-  //                     ..scale(_scale, _scale);
-  //                   _transformationController.value = matrix;
-  //                 });
-  //               },
-  //             ),
-  //             // Edit button
-  //             IconButton(
-  //               icon: Icon(
-  //                 _isEditing ? Icons.edit_off : Icons.edit,
-  //                 color: _isEditing ? Colors.blue : null,
-  //               ),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _isEditing = !_isEditing;
-  //                   // Implement PDF editing functionality here
-  //                 });
-  //               },
-  //             ),
-  //             // Rotate button
-  //             IconButton(
-  //               icon: const Icon(Icons.rotate_right),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _rotation = (_rotation + 90) % 360;
-  //                   final matrix = Matrix4.identity()
-  //                     ..scale(_scale, _scale)
-  //                     ..rotateZ(_rotation * 3.14159 / 180);
-  //                   _transformationController.value = matrix;
-  //                 });
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildMainViewer() {
-  //   if (_pdfController == null) {
-  //     return const Center(child: Text('Document viewer not initialized'));
-  //   }
-
-  //   return InteractiveViewer(
-  //     transformationController: _transformationController,
-  //     minScale: 0.5,
-  //     maxScale: 3.0,
-  //     child: PdfView(
-  //       controller: _pdfController!,
-  //       onPageChanged: (page) {
-  //         setState(() {
-  //           _currentPage = page;
-  //         });
-  //       },
-  //       builders: PdfViewBuilders<DefaultBuilderOptions>(
-  //         options: const DefaultBuilderOptions(),
-  //         documentLoaderBuilder: (_) => _buildLoadingWidget(),
-  //         pageLoaderBuilder: (_) => const Center(
-  //           child: CircularProgressIndicator(),
-  //         ),
-  //         errorBuilder: (_, error) => Center(
-  //           child: Text('Error: $error'),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
+  Widget _buildHeader() {
+    final fileName = widget.source.path.split('/').last;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // File name and page counter
+          Expanded(
+            flex: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fileName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  'Page $_currentPage of $_totalPages',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Header actions
+          Expanded(
+            flex: 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Info button
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        
+                        title: const Text('General Info'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Filename: $fileName'),
+                            Text('Total Pages: $_totalPages'),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                // Zoom out button
+                IconButton(
+                  icon: const Icon(Icons.zoom_out),
+                  onPressed: () {
+                    setState(() {
+                      _scale = (_scale - 0.25).clamp(0.5, 3.0);
+                      final matrix = Matrix4.identity()..scale(_scale, _scale);
+                      _transformationController.value = matrix;
+                    });
+                  },
+                ),
+                // Zoom in button
+                IconButton(
+                  icon: const Icon(Icons.zoom_in),
+                  onPressed: () {
+                    setState(() {
+                      _scale = (_scale + 0.25).clamp(0.5, 3.0);
+                      final matrix = Matrix4.identity()..scale(_scale, _scale);
+                      _transformationController.value = matrix;
+                    });
+                  },
+                ),
+                // Edit button
+                // IconButton(
+                //   icon: Icon(
+                //     _isEditing ? Icons.edit_off : Icons.edit,
+                //     color: _isEditing ? Colors.blue : null,
+                //   ),
+                //   onPressed: () {
+                //     setState(() {
+                //       _isEditing = !_isEditing;
+                //       // Implement PDF editing functionality here
+                //     });
+                //   },
+                // ),
+                // Rotate button
+                // IconButton(
+                //   icon: const Icon(Icons.rotate_right),
+                //   onPressed: () {
+                    
+                //     // setState(() {
+                //     //   _rotation = (_rotation + 90) % 360;
+                //     //   final matrix = Matrix4.identity()
+                //     //     ..scale(_scale, _scale)
+                //     //     ..rotateZ(_rotation * 3.14159 / 180);
+                //     //   _transformationController.value = matrix;
+                //     // });
+                //   },
+                // ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildErrorWidget() {
     return Center(
@@ -371,22 +343,22 @@ class _DocumentViewerState extends State<DocumentViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // TODO(davies-k): Implement header actions
-          // _buildHeader(),
-          Expanded(
-            child: _isLoading
-                ? _buildLoadingWidget()
-                : _error != null
-                    ? _buildErrorWidget()
-                    : _buildDocumentViewer(),
-          ),
-        ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            Expanded(
+              child: _isLoading
+                  ? _buildLoadingWidget()
+                  : _error != null
+                      ? _buildErrorWidget()
+                      : _buildDocumentViewer(),
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildNavigationBar(),
       ),
-      bottomNavigationBar: _buildNavigationBar(),
     );
   }
 
@@ -407,31 +379,56 @@ class _DocumentViewerState extends State<DocumentViewer> {
     return Container(
       width: widget.thumbnailWidth,
       color: Colors.grey[200],
-      child: ListView.builder(
-        itemCount: _totalPages,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              _pdfController?.animateToPage(
-                index + 1,
-                duration: widget.pageTransitionDuration,
-                curve: widget.pageTransitionCurve,
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8,),
-              height: 150,
-              decoration: BoxDecoration(
-                border: _currentPage == index + 1
-                    ? Border.all(
-                        color: widget.selectedThumbnailColor!, width: 2)
-                    : null,
-                color: Colors.white,
-              ),
-              child: _buildThumbnail(index + 1),
+      child: Column(
+        children: [
+          // header
+          const SizedBox(
+            height: 88,
+            width: 200,
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _totalPages,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    _pdfController?.animateToPage(
+                      index + 1,
+                      duration: widget.pageTransitionDuration,
+                      curve: widget.pageTransitionCurve,
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          height: 150,
+                          decoration: BoxDecoration(
+                              border: _currentPage == index + 1
+                                  ? Border.all(
+                                      color: widget.selectedThumbnailColor!,
+                                      width: 2)
+                                  : null,
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4)),
+                          child: _buildThumbnail(index + 1),
+                        ),
+                        Text(
+                          ((index + 1).toString()),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -441,23 +438,35 @@ class _DocumentViewerState extends State<DocumentViewer> {
       return const Center(child: Text('Document viewer not initialized'));
     }
 
-    return PdfView(
-      controller: _pdfController!,
-      onPageChanged: (page) {
-        setState(() {
-          _currentPage = page;
-        });
-      },
-      builders: PdfViewBuilders<DefaultBuilderOptions>(
-        options: const DefaultBuilderOptions(),
-        documentLoaderBuilder: (_) => _buildLoadingWidget(),
-        pageLoaderBuilder: (_) => const Center(
-          child: CircularProgressIndicator(),
+    return Column(
+      children: [
+        _buildHeader(),
+        Expanded(
+          child: InteractiveViewer(
+            transformationController: _transformationController,
+            minScale: 0.5,
+            maxScale: 3.0,
+            child: PdfView(
+              controller: _pdfController!,
+              onPageChanged: (page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+              builders: PdfViewBuilders<DefaultBuilderOptions>(
+                options: const DefaultBuilderOptions(),
+                documentLoaderBuilder: (_) => _buildLoadingWidget(),
+                pageLoaderBuilder: (_) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                errorBuilder: (_, error) => Center(
+                  child: Text('Error: $error'),
+                ),
+              ),
+            ),
+          ),
         ),
-        errorBuilder: (_, error) => Center(
-          child: Text('Error: $error'),
-        ),
-      ),
+      ],
     );
   }
 
