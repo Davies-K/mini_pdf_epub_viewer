@@ -26,7 +26,7 @@ Add this to your package's pubspec.yaml file:
 
 ```yaml
 dependencies:
-  mini_pdf_epub_viewer: ^0.1.0
+  mini_pdf_epub_viewer: ^0.1.1
 ```
 
 ## Usage
