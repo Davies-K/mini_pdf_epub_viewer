@@ -13,7 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   pdfx: ^2.8.0
   path_provider: ^2.1.5
-  mini_pdf_epub_viewer: ^0.1.1
+  mini_pdf_epub_viewer: 
+    path: ..
 
 dev_dependencies:
   flutter_test:

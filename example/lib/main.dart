@@ -13,6 +13,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: DocumentViewer(
+        /// Add this line to change the theme
+        // themeMode: ThemeMode.dark,
         thumbnailWidth: 150,
         source: DocumentSource.asset('assets/pdf/sample.pdf'),
         type: DocumentType.pdf,

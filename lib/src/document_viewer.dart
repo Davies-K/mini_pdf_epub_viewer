@@ -15,6 +15,7 @@ class DocumentViewer extends StatefulWidget {
   final Color? selectedThumbnailColor;
   final Duration pageTransitionDuration;
   final Curve pageTransitionCurve;
+  final ThemeMode? themeMode;
 
   const DocumentViewer({
     super.key,
@@ -25,6 +26,7 @@ class DocumentViewer extends StatefulWidget {
     this.selectedThumbnailColor = Colors.blue,
     this.pageTransitionDuration = const Duration(milliseconds: 300),
     this.pageTransitionCurve = Curves.easeInOut,
+    this.themeMode,
   });
 
   @override
@@ -43,6 +45,23 @@ class _DocumentViewerState extends State<DocumentViewer> {
   // bool _isEditing = false;
   final _transformationController = TransformationController();
   double _scale = 1.0;
+
+  bool get _isDark {
+    if (widget.themeMode != null) {
+      return widget.themeMode == ThemeMode.dark;
+    }
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
+  Color get _backgroundColor => _isDark ? Colors.grey[900]! : Colors.white;
+  Color get _surfaceColor => _isDark ? Colors.grey[800]! : Colors.grey[200]!;
+  Color get _borderColor => _isDark ? Colors.grey[700]! : Colors.grey[300]!;
+  Color get _textColor => _isDark ? Colors.grey[100]! : Colors.grey[900]!;
+  Color get _secondaryTextColor =>
+      _isDark ? Colors.grey[400]! : Colors.grey[600]!;
+  Color get _selectedColor =>
+      widget.selectedThumbnailColor ??
+      (_isDark ? Colors.blue[300]! : Colors.blue);
 
   @override
   void initState() {
@@ -151,17 +170,16 @@ class _DocumentViewerState extends State<DocumentViewer> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: _surfaceColor,
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey[300]!,
+            color: _borderColor,
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          // File name and page counter
           Expanded(
             flex: 1,
             child: Column(
@@ -169,57 +187,59 @@ class _DocumentViewerState extends State<DocumentViewer> {
               children: [
                 Text(
                   fileName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
+                    color: _textColor,
                   ),
                 ),
                 Text(
                   'Page $_currentPage of $_totalPages',
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: _secondaryTextColor,
                     fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          // Header actions
           Expanded(
             flex: 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Info button
                 IconButton(
-                  icon: const Icon(Icons.info_outline),
+                  icon: Icon(Icons.info_outline, color: _textColor),
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        
-                        title: const Text('General Info'),
+                        backgroundColor: _backgroundColor,
+                        title: Text('General Info',
+                            style: TextStyle(color: _textColor)),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Filename: $fileName'),
-                            Text('Total Pages: $_totalPages'),
+                            Text('Filename: $fileName',
+                                style: TextStyle(color: _textColor)),
+                            Text('Total Pages: $_totalPages',
+                                style: TextStyle(color: _textColor)),
                           ],
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Close'),
+                            child: Text('Close',
+                                style: TextStyle(color: _selectedColor)),
                           ),
                         ],
                       ),
                     );
                   },
                 ),
-                // Zoom out button
                 IconButton(
-                  icon: const Icon(Icons.zoom_out),
+                  icon: Icon(Icons.zoom_out, color: _textColor),
                   onPressed: () {
                     setState(() {
                       _scale = (_scale - 0.25).clamp(0.5, 3.0);
@@ -228,9 +248,8 @@ class _DocumentViewerState extends State<DocumentViewer> {
                     });
                   },
                 ),
-                // Zoom in button
                 IconButton(
-                  icon: const Icon(Icons.zoom_in),
+                  icon: Icon(Icons.zoom_in, color: _textColor),
                   onPressed: () {
                     setState(() {
                       _scale = (_scale + 0.25).clamp(0.5, 3.0);
@@ -239,6 +258,7 @@ class _DocumentViewerState extends State<DocumentViewer> {
                     });
                   },
                 ),
+
                 // Edit button
                 // IconButton(
                 //   icon: Icon(
@@ -256,7 +276,7 @@ class _DocumentViewerState extends State<DocumentViewer> {
                 // IconButton(
                 //   icon: const Icon(Icons.rotate_right),
                 //   onPressed: () {
-                    
+
                 //     // setState(() {
                 //     //   _rotation = (_rotation + 90) % 360;
                 //     //   final matrix = Matrix4.identity()
@@ -281,26 +301,32 @@ class _DocumentViewerState extends State<DocumentViewer> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
-              color: Colors.red,
+              color: _isDark ? Colors.red[300] : Colors.red,
               size: 60,
             ),
             const SizedBox(height: 16),
             Text(
               'Error loading PDF',
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: _textColor,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? 'Unknown error occurred',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: _secondaryTextColor,
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => _initializePdf,
-              child: const Text('Try Again'),
+              onPressed: () => _initializeDocument(),
+              child: Text('Try Again',
+                  style: TextStyle(
+                      color: _isDark ? Colors.grey[900] : Colors.white)),
             ),
           ],
         ),
@@ -309,13 +335,13 @@ class _DocumentViewerState extends State<DocumentViewer> {
   }
 
   Widget _buildLoadingWidget() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading PDF...'),
+          CircularProgressIndicator(color: _selectedColor),
+          const SizedBox(height: 16),
+          Text('Loading PDF...', style: TextStyle(color: _textColor)),
         ],
       ),
     );
@@ -345,7 +371,7 @@ class _DocumentViewerState extends State<DocumentViewer> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _backgroundColor,
         body: Column(
           children: [
             Expanded(
@@ -378,10 +404,9 @@ class _DocumentViewerState extends State<DocumentViewer> {
   Widget _buildThumbnailSidebar() {
     return Container(
       width: widget.thumbnailWidth,
-      color: Colors.grey[200],
+      color: _surfaceColor,
       child: Column(
         children: [
-          // header
           const SizedBox(
             height: 88,
             width: 200,
@@ -409,17 +434,17 @@ class _DocumentViewerState extends State<DocumentViewer> {
                           ),
                           height: 150,
                           decoration: BoxDecoration(
-                              border: _currentPage == index + 1
-                                  ? Border.all(
-                                      color: widget.selectedThumbnailColor!,
-                                      width: 2)
-                                  : null,
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(4)),
+                            border: _currentPage == index + 1
+                                ? Border.all(color: _selectedColor, width: 2)
+                                : null,
+                            color: _isDark ? Colors.grey[850] : Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           child: _buildThumbnail(index + 1),
                         ),
                         Text(
                           ((index + 1).toString()),
+                          style: TextStyle(color: _textColor),
                         )
                       ],
                     ),
@@ -475,21 +500,22 @@ class _DocumentViewerState extends State<DocumentViewer> {
 
     return Container(
       padding: const EdgeInsets.all(8),
-      color: Colors.grey[200],
+      color: _surfaceColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
-            icon: const Icon(Icons.navigate_before),
+            icon: Icon(Icons.navigate_before, color: _textColor),
             onPressed: _currentPage > 1
                 ? () => _pdfController?.previousPage(
                     duration: widget.pageTransitionDuration,
                     curve: widget.pageTransitionCurve)
                 : null,
           ),
-          Text('Page $_currentPage of $_totalPages'),
+          Text('Page $_currentPage of $_totalPages',
+              style: TextStyle(color: _textColor)),
           IconButton(
-            icon: const Icon(Icons.navigate_next),
+            icon: Icon(Icons.navigate_next, color: _textColor),
             onPressed: _currentPage < _totalPages
                 ? () => _pdfController?.nextPage(
                     duration: widget.pageTransitionDuration,
