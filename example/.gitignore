@@ -23,6 +23,7 @@ migrate_working_dir/
 
 # Flutter/Dart/Pub related
 **/doc/api/
+**/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -40,37 +41,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Application signing keys
-**/key.jks
-**/keystore.properties
-**/release.keystore
-
-# Android-specific files
-**/android/key.properties
-**/android/app/src/main/res/values/google-services.json
-**/android/app/src/debug/res/values/google-services.json
-**/android/app/src/release/res/values/google-services.json
-
-# iOS-specific files
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/Flutter/Generated.xcconfig
-ios/Runner.xcodeproj/
-ios/Runner.xcworkspace/
-ios/Pods/
-ios/.symlinks/
-ios/Podfile.lock
-ios/Flutter/ephemeral/
-
-# Generated or sensitive credentials
-.env
-.env.*
-firebase.json
-secrets.json
-
-# Other sensitive files
-**/*.pem
-**/*.p12
-**/*.key
-**/*.crt
