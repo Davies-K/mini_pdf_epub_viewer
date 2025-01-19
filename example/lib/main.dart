@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
         source: DocumentSource.asset('assets/pdf/sample.pdf'),
         type: DocumentType.pdf,
       ),
+
       /// For file
       // home: DocumentViewer(
       //   source: DocumentSource.file('/path/to/file.pdf'),

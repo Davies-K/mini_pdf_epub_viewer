@@ -21,7 +21,8 @@ void main() {
 
   testWidgets('DocumentViewer displays Network PDF document',
       (WidgetTester tester) async {
-    const documentSource = DocumentSource.network('https://pdfobject.com/pdf/sample.pdf');
+    const documentSource =
+        DocumentSource.network('https://pdfobject.com/pdf/sample.pdf');
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -31,7 +32,6 @@ void main() {
           ),
         ),
       ),
-           
     );
 
     expect(find.byType(DocumentViewer), findsOneWidget);

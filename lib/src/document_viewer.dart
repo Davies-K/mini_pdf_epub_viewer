@@ -7,6 +7,38 @@ import 'package:path_provider/path_provider.dart';
 import 'models/document_source.dart';
 import 'models/document_type.dart';
 
+/// A widget that displays a document viewer for PDF and EPUB files.
+///
+/// The [DocumentViewer] widget supports displaying PDF documents with
+/// optional thumbnails, zooming, and page navigation. EPUB support is
+/// currently not implemented.
+///
+/// The widget provides various customization options such as thumbnail
+/// width, selected thumbnail color, page transition duration, and curve.
+///
+/// Example usage:
+/// ```dart
+/// DocumentViewer(
+///   source: DocumentSource.asset('assets/sample.pdf'),
+///   type: DocumentType.pdf,
+///   thumbnailWidth: 150,
+///   showThumbnails: true,
+///   selectedThumbnailColor: Colors.red,
+///   pageTransitionDuration: Duration(milliseconds: 500),
+///   pageTransitionCurve: Curves.easeIn,
+///   themeMode: ThemeMode.dark,
+/// )
+/// ```
+///
+/// Params:
+/// - [source]: The source of the document to be displayed. This is a required parameter.
+/// - [type]: The type of the document (PDF or EPUB). This is a required parameter.
+/// - [thumbnailWidth]: The width of the thumbnails displayed in the sidebar. Defaults to 200.
+/// - [showThumbnails]: Whether to show thumbnails in the sidebar. Defaults to true.
+/// - [selectedThumbnailColor]: The color of the selected thumbnail border. Defaults to Colors.blue.
+/// - [pageTransitionDuration]: The duration of the page transition animation. Defaults to 300 milliseconds.
+/// - [pageTransitionCurve]: The curve of the page transition animation. Defaults to Curves.easeInOut.
+/// - [themeMode]: The theme mode of the document viewer (light, dark, or system default). If not provided, it defaults to the system theme.
 class DocumentViewer extends StatefulWidget {
   final DocumentSource source;
   final DocumentType type;
