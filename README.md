@@ -30,7 +30,7 @@ Add this to your package's pubspec.yaml file:
 
 ```yaml
 dependencies:
-  mini_pdf_epub_viewer: ^0.1.1
+  mini_pdf_epub_viewer: ^0.1.2
 ```
 
 ## Usage
@@ -89,6 +89,7 @@ DocumentViewer(
     sourceType: DocumentSourceType.file,
   ),
   type: DocumentType.pdf,
+  themeMode: ThemeMode.dark
   thumbnailWidth: 200,
   showThumbnails: true,
   selectedThumbnailColor: Colors.blue,
