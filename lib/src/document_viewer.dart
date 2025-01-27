@@ -1,11 +1,16 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mini_pdf_epub_viewer/src/formatted_epub_content.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'models/document_source.dart';
 import 'models/document_type.dart';
+import 'package:epubx/epubx.dart' as epubx;
 
 /// A widget that displays a document viewer for PDF and EPUB files.
 ///
@@ -67,16 +72,20 @@ class DocumentViewer extends StatefulWidget {
 
 class _DocumentViewerState extends State<DocumentViewer> {
   PdfController? _pdfController;
+  epubx.EpubBook? _epubBook;
+  List<epubx.EpubChapter>? _chapters;
   int _currentPage = 1;
   int _totalPages = 0;
   bool _isLoading = true;
   String? _error;
   final Map<int, Future<PdfPageImage?>> _thumbnails = {};
+  final _transformationController = TransformationController();
+  double _scale = 1.0;
+  int _currentChapter = 0;
+  final ScrollController _epubScrollController = ScrollController();
   // TODO(davies-k): Implement editing functionality
   // double _rotation = 0.0;
   // bool _isEditing = false;
-  final _transformationController = TransformationController();
-  double _scale = 1.0;
 
   bool get _isDark {
     if (widget.themeMode != null) {
@@ -143,14 +152,13 @@ class _DocumentViewerState extends State<DocumentViewer> {
 
     try {
       final file = await _getFileFromSource();
-
       switch (widget.type) {
         case DocumentType.pdf:
           await _initializePdf(file);
           break;
         case DocumentType.epub:
-          // TODO: Implement epub support
-          throw UnimplementedError('EPUB support coming soon');
+          await _initializeEpub(file);
+          break;
       }
 
       setState(() {
@@ -162,6 +170,148 @@ class _DocumentViewerState extends State<DocumentViewer> {
         _error = e.toString();
       });
       debugPrint('Error loading document: $e');
+    }
+  }
+
+  Future<void> _initializeEpub(File file) async {
+    try {
+      final List<int> bytes = await file.readAsBytes();
+      _epubBook = await epubx.EpubReader.readBook(bytes);
+
+      // Extract chapters
+      _chapters = [];
+      if (_epubBook?.Chapters != null) {
+        _extractChapters(_epubBook!.Chapters!, _chapters!);
+        _generateEpubThumbnails();
+      }
+
+      // Set total pages to number of chapters for navigation
+      _totalPages = _chapters?.length ?? 0;
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      throw Exception('Failed to initialize EPUB: $e');
+    }
+  }
+
+  void _extractChapters(
+      List<epubx.EpubChapter> source, List<epubx.EpubChapter> target) {
+    for (var chapter in source) {
+      target.add(chapter);
+      if (chapter.SubChapters != null && chapter.SubChapters!.isNotEmpty) {
+        _extractChapters(chapter.SubChapters!, target);
+      }
+    }
+  }
+
+  Future<void> _generateEpubThumbnails() async {
+    if (_epubBook == null || _chapters == null) return;
+
+    for (int i = 0; i < _chapters!.length; i++) {
+      final chapter = _chapters![i];
+      final thumbnail = await _generateEpubThumbnail(chapter, i + 1);
+      if (thumbnail != null) {
+        setState(() {
+          _thumbnails[i + 1] = Future.value(EpubThumbnailImage(
+            width: 150,
+            height: 200,
+            bytes: thumbnail,
+            pageNumber: i + 1,
+          ));
+        });
+      }
+    }
+  }
+
+  Future<Uint8List?> _generateEpubThumbnail(
+      epubx.EpubChapter chapter, int pageNumber) async {
+    try {
+      // Create a recorder and canvas
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
+
+      // Define the thumbnail size
+      const double width = 150.0;
+      const double height = 200.0;
+
+      // Draw background
+      final Paint bgPaint = Paint()
+        ..color = _isDark ? Colors.grey[850]! : Colors.white;
+      canvas.drawRect(const Rect.fromLTWH(0, 0, width, height), bgPaint);
+
+      // Draw page number
+      final pageNumberPainter = TextPainter(
+        text: TextSpan(
+          text: 'Chapter $pageNumber',
+          style: TextStyle(
+            color: _textColor,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      pageNumberPainter.layout(maxWidth: width);
+      pageNumberPainter.paint(canvas, const Offset(8, 8));
+
+      // Draw chapter title
+      final titlePainter = TextPainter(
+        text: TextSpan(
+          text: chapter.Title ?? 'Untitled Chapter',
+          style: TextStyle(
+            color: _textColor,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 2,
+        ellipsis: '...',
+      );
+      titlePainter.layout(maxWidth: width - 16);
+      titlePainter.paint(canvas, Offset(8, pageNumberPainter.height + 16));
+
+      // Draw preview of chapter content
+      String content = '';
+      if (chapter.HtmlContent != null) {
+        content = chapter.HtmlContent!
+            .replaceAll(RegExp(r'<[^>]*>'), ' ')
+            .replaceAll('&nbsp;', ' ')
+            .replaceAll('&quot;', '"')
+            .replaceAll('&apos;', "'")
+            .replaceAll('&amp;', '&')
+            .trim();
+      }
+
+      final contentPainter = TextPainter(
+        text: TextSpan(
+          text: content,
+          style: TextStyle(
+            color: _textColor.withOpacity(0.8),
+            fontSize: 10,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 8,
+        ellipsis: '...',
+      );
+      contentPainter.layout(maxWidth: width - 16);
+      contentPainter.paint(
+        canvas,
+        Offset(8, pageNumberPainter.height + titlePainter.height + 32),
+      );
+
+      // Convert to image
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(width.toInt(), height.toInt());
+      final byteData = await image.toByteData(format: ImageByteFormat.png);
+
+      return byteData?.buffer.asUint8List();
+    } catch (e) {
+      debugPrint('Error generating thumbnail for chapter $pageNumber: $e');
+      return null;
     }
   }
 
@@ -366,6 +516,116 @@ class _DocumentViewerState extends State<DocumentViewer> {
     );
   }
 
+  Widget _buildEpubViewer() {
+    if (_epubBook == null || _chapters == null) {
+      return Center(
+          child: Text('EPUB not loaded', style: TextStyle(color: _textColor)));
+    }
+
+    return Column(
+      children: [
+        _buildHeader(),
+        Expanded(
+          child: Row(
+            children: [
+              if (widget.showThumbnails) _buildEpubChapterList(),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _epubScrollController,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _chapters![_currentChapter].Title ?? 'Untitled Chapter',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: _textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildChapterContent(_chapters![_currentChapter]),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEpubChapterList() {
+    return Container(
+      width: widget.thumbnailWidth,
+      color: _surfaceColor,
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 88,
+            width: 200,
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _thumbnails.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _currentChapter = index;
+                      _currentPage = index + 1;
+                      _epubScrollController.jumpTo(0);
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          height: 150,
+                          decoration: BoxDecoration(
+                            border: _currentPage == index + 1
+                                ? Border.all(color: _selectedColor, width: 2)
+                                : null,
+                            color: _isDark ? Colors.grey[850] : Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: _buildThumbnail(index + 1),
+                        ),
+                        Text(
+                          ((index + 1).toString()),
+                          style: TextStyle(color: _textColor),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChapterContent(epubx.EpubChapter chapter) {
+    return FormattedEpubContent(
+      htmlContent: chapter.HtmlContent ?? '',
+      textColor: _textColor,
+      fontSize: 16,
+      lineHeight: 1.6,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      images: _epubBook?.Content?.Images,
+      screenSize: MediaQuery.of(context).size,
+    );
+  }
+
   Widget _buildLoadingWidget() {
     return Center(
       child: Column(
@@ -421,16 +681,14 @@ class _DocumentViewerState extends State<DocumentViewer> {
   }
 
   Widget _buildDocumentViewer() {
-    if (widget.type == DocumentType.epub) {
-      return const Center(child: Text('EPUB support coming soon'));
-    }
-
-    return Row(
-      children: [
-        if (widget.showThumbnails) _buildThumbnailSidebar(),
-        Expanded(child: _buildMainViewer()),
-      ],
-    );
+    return widget.type == DocumentType.epub
+        ? _buildEpubViewer()
+        : Row(
+            children: [
+              if (widget.showThumbnails) _buildThumbnailSidebar(),
+              Expanded(child: _buildMainViewer()),
+            ],
+          );
   }
 
   Widget _buildThumbnailSidebar() {
@@ -564,4 +822,37 @@ class _DocumentViewerState extends State<DocumentViewer> {
     _pdfController?.dispose();
     super.dispose();
   }
+}
+
+class EpubThumbnailImage implements PdfPageImage {
+  @override
+  final int width;
+  @override
+  final int height;
+  @override
+  final Uint8List bytes;
+  @override
+  final int pageNumber;
+  @override
+  final double? bytesPerPixel;
+
+  EpubThumbnailImage({
+    required this.width,
+    required this.height,
+    required this.bytes,
+    required this.pageNumber,
+    this.bytesPerPixel,
+  });
+
+  @override
+  // TODO: implement format
+  PdfPageImageFormat get format => throw UnimplementedError();
+
+  @override
+  // TODO: implement id
+  String? get id => throw UnimplementedError();
+
+  @override
+  // TODO: implement quality
+  int get quality => throw UnimplementedError();
 }

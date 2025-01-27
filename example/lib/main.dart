@@ -14,10 +14,10 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       home: DocumentViewer(
         /// Add this line to change the theme
-        // themeMode: ThemeMode.dark,
+        themeMode: ThemeMode.dark,
         thumbnailWidth: 150,
-        source: DocumentSource.asset('assets/pdf/sample.pdf'),
-        type: DocumentType.pdf,
+        source: DocumentSource.asset('assets/epub/minimal.epub'),
+        type: DocumentType.epub,
       ),
 
       /// For file
