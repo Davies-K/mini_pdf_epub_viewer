@@ -833,7 +833,6 @@ class EpubThumbnailImage implements PdfPageImage {
   final Uint8List bytes;
   @override
   final int pageNumber;
-  @override
   final double? bytesPerPixel;
 
   EpubThumbnailImage({
