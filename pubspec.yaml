@@ -16,6 +16,7 @@ dependencies:
   pdfx: ^2.8.0
   path_provider: ^2.1.5
   http: ^1.2.2
+  epubx: ^4.0.0
 
 dev_dependencies:
   flutter_test:
