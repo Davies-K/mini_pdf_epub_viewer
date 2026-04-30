@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Note: This workflow uses the latest stable version of the Dart SDK.
       # You can specify other versions if desired, see documentation here:
       # https://github.com/dart-lang/setup-dart/blob/main/README.md
       # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
