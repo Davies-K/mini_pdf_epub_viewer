@@ -1,6 +1,6 @@
 # Mini PDF & EPUB Viewer
 
-**Mini PDF & EPUB Viewer** is a Flutter widget designed to provide a seamless document viewing experience with support for PDF files and (upcoming) EPUB format. It offers an intuitive interface with thumbnail navigation, smooth page transitions, and customizable viewing options, making it perfect for document reader applications, e-book apps, or any Flutter project requiring document viewing capabilities.
+**Mini PDF & EPUB Viewer** is a Flutter widget for reading PDF and EPUB documents. PDFs scroll continuously with sharp pinch and double-tap zoom, like the iOS reader, and EPUBs render as reflowable text with a table of contents. It is suited to document reader apps, e-book apps, or any Flutter project that needs to show documents.
 
 ## Examples
 | ![Mini Viewer](doc/src/assets/example/example.gif) | ![Dark Mode Tablet](doc/src/assets/example/dark_tablet.png) |
@@ -17,8 +17,10 @@
   - Local files
   - Network URLs
   - Asset bundles
-- **Thumbnail Navigation**: Quick navigation through document pages with a customizable thumbnail sidebar
-- **Smooth Page Transitions**: Animated page transitions with customizable duration and curves
+- **Continuous PDF Scrolling**: Pages scroll vertically on a canvas with drop shadows, rendered by [pdfrx](https://pub.dev/packages/pdfrx) (PDFium)
+- **Sharp Zoom**: Pinch to zoom re-renders pages at the new resolution; double-tap zooms in and back to fit-to-width
+- **Thumbnail Navigation**: A lazily rendered thumbnail sidebar that follows the current page
+- **EPUB Reading**: Reflowable text one section at a time, embedded images, links between chapters, adjustable text size and a table of contents sidebar
 - **Responsive Layout**: Adapts to different screen sizes and orientations
 - **Error Handling**: Comprehensive error handling with user-friendly error messages and retry options
 - **Loading States**: Clear loading indicators for both document and thumbnails
@@ -30,7 +32,7 @@ Add this to your package's pubspec.yaml file:
 
 ```yaml
 dependencies:
-  mini_pdf_epub_viewer: ^0.1.2
+  mini_pdf_epub_viewer: ^0.2.0
 ```
 
 ## Usage
@@ -45,10 +47,7 @@ import 'package:mini_pdf_epub_viewer/mini_pdf_epub_viewer.dart';
 
 ```dart
 DocumentViewer(
-  source: DocumentSource(
-    path: '/path/to/document.pdf',
-    sourceType: DocumentSourceType.file,
-  ),
+  source: DocumentSource.file('/path/to/document.pdf'),
   type: DocumentType.pdf,
 );
 ```
@@ -57,9 +56,8 @@ DocumentViewer(
 
 ```dart
 DocumentViewer(
-  source: DocumentSource(
-    path: 'https://example.com/document.pdf',
-    sourceType: DocumentSourceType.network,
+  source: DocumentSource.network(
+    'https://example.com/document.pdf',
     headers: {'Authorization': 'Bearer token'}, // Optional headers
   ),
   type: DocumentType.pdf,
@@ -70,13 +68,21 @@ DocumentViewer(
 
 ```dart
 DocumentViewer(
-  source: DocumentSource(
-    path: 'assets/document.pdf',
-    sourceType: DocumentSourceType.asset,
-  ),
+  source: DocumentSource.asset('assets/document.pdf'),
   type: DocumentType.pdf,
 );
 ```
+
+### Load an EPUB
+
+```dart
+DocumentViewer(
+  source: DocumentSource.asset('assets/book.epub'),
+  type: DocumentType.epub,
+);
+```
+
+EPUBs can be loaded from assets, files or the network in the same way as PDFs.
 
 ## Customization
 
@@ -84,12 +90,9 @@ The viewer can be customized with various properties:
 
 ```dart
 DocumentViewer(
-  source: DocumentSource(
-    path: '/path/to/document.pdf',
-    sourceType: DocumentSourceType.file,
-  ),
+  source: DocumentSource.file('/path/to/document.pdf'),
   type: DocumentType.pdf,
-  themeMode: ThemeMode.dark
+  themeMode: ThemeMode.dark,
   thumbnailWidth: 200,
   showThumbnails: true,
   selectedThumbnailColor: Colors.blue,
@@ -104,11 +107,12 @@ DocumentViewer(
 |----------|------|---------|-------------|
 | source | DocumentSource | required | Configuration for the document source |
 | type | DocumentType | required | Type of document (PDF/EPUB) |
-| thumbnailWidth | double | 200 | Width of thumbnail sidebar |
-| showThumbnails | bool | true | Whether to show thumbnails |
-| selectedThumbnailColor | Color | Colors.blue | Color of selected thumbnail |
-| pageTransitionDuration | Duration | 300ms | Duration of page transitions |
-| pageTransitionCurve | Curve | Curves.easeInOut | Animation curve for transitions |
+| thumbnailWidth | double | 200 | Width of the sidebar (PDF thumbnails or EPUB table of contents) |
+| showThumbnails | bool | true | Whether to show the sidebar |
+| selectedThumbnailColor | Color? | iOS system blue | Accent colour for the current page and controls |
+| pageTransitionDuration | Duration | 300ms | Duration of page and section transitions |
+| pageTransitionCurve | Curve | Curves.easeInOut | Curve for EPUB section transitions and sidebar scrolling |
+| themeMode | ThemeMode? | system | Light or dark viewer, independent of the app theme |
 
 ## Maintainers
 
